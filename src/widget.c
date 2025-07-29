@@ -38,10 +38,10 @@ BUILD_ASSERT(!(SHOW_LAYER_CHANGE && SHOW_LAYER_COLORS),
 BUILD_ASSERT(DT_NODE_EXISTS(PWM_LED_NODE_ID),
     "An alias for the PWM LED is not found for RGBLED_WIDGET");
 static const struct device *led_dev = DEVICE_DT_GET(PWM_LED_NODE_ID);
-static const struct pwm_dt_spec rgb_leds[] = {
-    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_red)),
-    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_green)),
-    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_blue))
+static const struct uint8_t rgb_brightness[] = {
+    CONFIG_RGBLED_WIDGET_RED_BRIGHTNESS,
+    CONFIG_RGBLED_WIDGET_GREEN_BRIGHTNESS,
+    CONFIG_RGBLED_WIDGET_BLUE_BRIGHTNESS
 };
 #else
 #define LED_GPIO_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(gpio_leds)
