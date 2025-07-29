@@ -123,7 +123,7 @@ static void set_rgb_leds(uint8_t color, uint16_t duration_ms) {
                 #endif
             } else {
                 #if IS_ENABLED(CONFIG_RGBLED_WIDGET_USE_PWM)
-                    led_set_brightness(led_dev, rgb_idx[pos], 0);
+                    led_set_brightness(led_dev, rgb_idx[pos], rgb_brightness[pos]);
                 #else
                     led_off(led_dev, rgb_idx[pos]);
                 #endif
