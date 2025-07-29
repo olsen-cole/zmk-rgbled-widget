@@ -33,7 +33,7 @@ BUILD_ASSERT(!(SHOW_LAYER_CHANGE && SHOW_LAYER_COLORS),
              "are mutually exclusive");
 
 // GPIO-based LED device and indices of red/green/blue LEDs inside its DT node
-#if IS_ENABLED(CONFIG_RGBLED_WIDGET_PWM_CONTROL)
+#if IS_ENABLED(CONFIG_RGBLED_WIDGET_USE_PWM)
 #define PWM_LED_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(pwm_leds)
 BUILD_ASSERT(DT_NODE_EXISTS(PWM_LED_NODE_ID),
     "An alias for the PWM LED is not found for RGBLED_WIDGET");
