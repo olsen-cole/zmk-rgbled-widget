@@ -20,6 +20,29 @@ config RGBLED_WIDGET_INTERVAL_MS
     int "Minimum wait duration between two blinks in ms"
     default 500
 
+# Brightness settings
+
+config RGBLED_WIDGET_USE_PWM
+    bool "Enable PWM brightness control"
+
+config RGBLED_WIDGET_RED_BRIGHTNESS
+    int "Red brightness (0-100)"
+    range 1 100
+    default 100
+    depends on RGBLED_WIDGET_USE_PWM
+
+config RGBLED_WIDGET_GREEN_BRIGHTNESS
+    int "Green brightness (0-100)"
+    range 1 100
+    default 100
+    depends on RGBLED_WIDGET_USE_PWM
+
+config RGBLED_WIDGET_BLUE_BRIGHTNESS
+    int "Blue brightness (0-100)"
+    range 1 100
+    default 100
+    depends on RGBLED_WIDGET_USE_PWM
+
 # Battery level settings
 
 choice RGBLED_WIDGET_BATTERY_SHOW

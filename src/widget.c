@@ -3,6 +3,7 @@
 #include <zephyr/drivers/led.h>
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/pwm.h>
 
 #include <zmk/battery.h>
 #include <zmk/ble.h>
@@ -27,24 +28,34 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-#define LED_GPIO_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(gpio_leds)
+BUILD_ASSERT(!(SHOW_LAYER_CHANGE && SHOW_LAYER_COLORS),
+             "CONFIG_RGBLED_WIDGET_SHOW_LAYER_CHANGE and CONFIG_RGBLED_WIDGET_SHOW_LAYER_COLORS "
+             "are mutually exclusive");
 
+// GPIO-based LED device and indices of red/green/blue LEDs inside its DT node
+#if IS_ENABLED(CONFIG_RGBLED_WIDGET_PWM_CONTROL)
+#define PWM_LED_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(pwm_leds)
+BUILD_ASSERT(DT_NODE_EXISTS(PWM_LED_NODE_ID),
+    "An alias for the PWM LED is not found for RGBLED_WIDGET");
+static const struct device *led_dev = DEVICE_DT_GET(PWM_LED_NODE_ID);
+static const struct pwm_dt_spec rgb_leds[] = {
+    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_red)),
+    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_green)),
+    PWM_DT_SPEC_GET(DT_ALIAS(pwm_led_blue))
+};
+#else
+#define LED_GPIO_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(gpio_leds)
 BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_red)),
              "An alias for a red LED is not found for RGBLED_WIDGET");
 BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_green)),
              "An alias for a green LED is not found for RGBLED_WIDGET");
 BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_blue)),
              "An alias for a blue LED is not found for RGBLED_WIDGET");
-
-BUILD_ASSERT(!(SHOW_LAYER_CHANGE && SHOW_LAYER_COLORS),
-             "CONFIG_RGBLED_WIDGET_SHOW_LAYER_CHANGE and CONFIG_RGBLED_WIDGET_SHOW_LAYER_COLORS "
-             "are mutually exclusive");
-
-// GPIO-based LED device and indices of red/green/blue LEDs inside its DT node
 static const struct device *led_dev = DEVICE_DT_GET(LED_GPIO_NODE_ID);
 static const uint8_t rgb_idx[] = {DT_NODE_CHILD_IDX(DT_ALIAS(led_red)),
                                   DT_NODE_CHILD_IDX(DT_ALIAS(led_green)),
                                   DT_NODE_CHILD_IDX(DT_ALIAS(led_blue))};
+#endif
 
 // map from color values to names, for logging
 static const char *color_names[] = {"black", "red",     "green", "yellow",
@@ -95,6 +106,9 @@ static bool initialized = false;
 // track current color for persistent indicators (layer color)
 uint8_t led_current_color = 0;
 
+// brightness control
+
+
 // low-level method to control the LED
 static void set_rgb_leds(uint8_t color, uint16_t duration_ms) {
     for (uint8_t pos = 0; pos < 3; pos++) {
@@ -102,9 +116,17 @@ static void set_rgb_leds(uint8_t color, uint16_t duration_ms) {
         if ((bit & led_current_color) != (bit & color)) {
             // bits are different, so we need to change one
             if (bit & color) {
-                led_on(led_dev, rgb_idx[pos]);
+                #if IS_ENABLED(CONFIG_RGBLED_WIDGET_USE_PWM)
+                    led_set_brightness(led_dev, rgb_idx[pos], rgb_brightness[pos]);
+                #else
+                    led_on(led_dev, rgb_idx[pos]);
+                #endif
             } else {
-                led_off(led_dev, rgb_idx[pos]);
+                #if IS_ENABLED(CONFIG_RGBLED_WIDGET_USE_PWM)
+                    led_set_brightness(led_dev, rgb_idx[pos], 0);
+                #else
+                    led_off(led_dev, rgb_idx[pos]);
+                #endif
             }
         }
     }
