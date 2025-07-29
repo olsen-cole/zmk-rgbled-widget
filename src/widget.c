@@ -35,8 +35,15 @@ BUILD_ASSERT(!(SHOW_LAYER_CHANGE && SHOW_LAYER_COLORS),
 // GPIO-based LED device and indices of red/green/blue LEDs inside its DT node
 #if IS_ENABLED(CONFIG_RGBLED_WIDGET_USE_PWM)
 #define PWM_LED_NODE_ID DT_COMPAT_GET_ANY_STATUS_OKAY(pwm_leds)
+BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_red)),
+             "An alias for a red LED is not found for RGBLED_WIDGET");
+BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_green)),
+             "An alias for a green LED is not found for RGBLED_WIDGET");
+BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_blue)),
+             "An alias for a blue LED is not found for RGBLED_WIDGET");
 BUILD_ASSERT(DT_NODE_EXISTS(PWM_LED_NODE_ID),
     "An alias for the PWM LED is not found for RGBLED_WIDGET");
+
 static const struct device *led_dev = DEVICE_DT_GET(PWM_LED_NODE_ID);
 static const uint8_t rgb_brightness[] = {
     CONFIG_RGBLED_WIDGET_RED_BRIGHTNESS,
@@ -52,10 +59,10 @@ BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_green)),
 BUILD_ASSERT(DT_NODE_EXISTS(DT_ALIAS(led_blue)),
              "An alias for a blue LED is not found for RGBLED_WIDGET");
 static const struct device *led_dev = DEVICE_DT_GET(LED_GPIO_NODE_ID);
-#endif
 static const uint8_t rgb_idx[] = {DT_NODE_CHILD_IDX(DT_ALIAS(led_red)),
                                   DT_NODE_CHILD_IDX(DT_ALIAS(led_green)),
                                   DT_NODE_CHILD_IDX(DT_ALIAS(led_blue))};
+#endif
 
 // map from color values to names, for logging
 static const char *color_names[] = {"black", "red",     "green", "yellow",
