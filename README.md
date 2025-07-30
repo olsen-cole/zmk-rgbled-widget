@@ -1,7 +1,8 @@
 # LED indicators using an RGB LED
 
-This is a [ZMK module](https://zmk.dev/docs/features/modules) containing a simple widget that utilizes a (typically built-in) RGB LED controlled by three separate GPIOs.
+This is a [ZMK module](https://zmk.dev/docs/features/modules) containing a simple widget that utilizes a (typically built-in) RGB LED controlled by three separate GPIOs. 
 It is used to indicate battery level and BLE connection status in a minimalist way.
+This module was forked to add brightness control.
 
 ## Features
 
@@ -45,15 +46,15 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: caksoylar  # <-- new entry
-      url-base: https://github.com/caksoylar
+    - name: olsen-cole  # <-- new entry
+      url-base: https://github.com/olsen-cole
   projects:
     - name: zmk
       remote: zmkfirmware
       revision: main
       import: app/west.yml
     - name: zmk-rgbled-widget  # <-- new entry
-      remote: caksoylar
+      remote: olsen-cole
       revision: main
   self:
     path: config
@@ -70,6 +71,8 @@ include:
   - board: seeeduino_xiao_ble
     shield: hummingbird rgbled_adapter
 ```
+> [!NOTE] 
+> PWM is not enabled by default for the supported boards.
 
 For other keyboards, see the ["Adding support" section](#adding-support-in-custom-boardsshields) below.
 
@@ -123,6 +126,10 @@ If a part is currently disconnected, a magenta/purple ([configurable](#configura
 | Name                               | Description                                    | Default |
 | ---------------------------------- | ---------------------------------------------- | ------- |
 | `CONFIG_RGBLED_WIDGET_INTERVAL_MS` | Minimum wait duration between two blinks in ms | 500     |
+| `CONFIG_RGBLED_WIDGET_USE_PWM` | Enable PWM brightness control | n     |
+| `CONFIG_RGBLED_WIDGET_RED_BRIGHTNESS` | Red LED brightness (1-100) | 100     |
+| `CONFIG_RGBLED_WIDGET_GREEN_BRIGHTNESS` | Green LED brightness (1-100) | 100     |
+| `CONFIG_RGBLED_WIDGET_BLUE_BRIGHTNESS` | Blue LED brightness (1-100) | 100     |
 
 </details>
 
@@ -226,8 +233,8 @@ CONFIG_RGBLED_WIDGET_BATTERY_LEVEL_CRITICAL=10
 To be able to use this widget, you need three LEDs controlled by GPIOs (_not_ smart LEDs), ideally red, green and blue colors.
 Once you have these LED definitions in your board/shield, simply set the appropriate `aliases` to the RGB LED node labels.
 
-As an example, here is a definition for three LEDs connected to VCC and separate GPIOs for a nRF52840 controller:
-
+As an example, here are two definitions for the standard three LEDs connected to VCC and separate GPIOs for a nRF52840 controller.
+### Basic gpio-leds implementation
 ```dts
 / {
     aliases {
@@ -247,6 +254,35 @@ As an example, here is a definition for three LEDs connected to VCC and separate
         };
         led2: led_2 {
             gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;  // blue LED, connected to P0.06
+        };
+    };
+};
+```
+### PWM brightness implementation
+```dts
+/ {
+    chosen {
+      zephyr,pwm-leds = &pwm_leds;
+    }
+    aliases {
+        led-red = &led0;
+        led-green = &led1;
+        led-blue = &led2;
+    };
+
+    pwm_leds: pwm_leds {
+        compatible = "pwm-leds";
+        
+        led0: led_0 {
+            pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+        };
+        
+        led1: led_1 {
+            pwms = <&pwm0 1 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+        };
+        
+        led2: led_2 {
+            pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
         };
     };
 };
