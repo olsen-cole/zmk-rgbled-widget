@@ -126,7 +126,7 @@ If a part is currently disconnected, a magenta/purple ([configurable](#configura
 | Name                               | Description                                    | Default |
 | ---------------------------------- | ---------------------------------------------- | ------- |
 | `CONFIG_RGBLED_WIDGET_INTERVAL_MS` | Minimum wait duration between two blinks in ms | 500     |
-| `CONFIG_RGBLED_WIDGET_USE_PWM` | Enable PWM brightness control | n     |
+| `CONFIG_RGBLED_WIDGET_USE_PWM` | Enable PWM brightness control | `n`     |
 | `CONFIG_RGBLED_WIDGET_RED_BRIGHTNESS` | Red LED brightness (1-100) | 100     |
 | `CONFIG_RGBLED_WIDGET_GREEN_BRIGHTNESS` | Green LED brightness (1-100) | 100     |
 | `CONFIG_RGBLED_WIDGET_BLUE_BRIGHTNESS` | Blue LED brightness (1-100) | 100     |
@@ -263,7 +263,7 @@ As an example, here are two definitions for the standard three LEDs connected to
 / {
     chosen {
       zephyr,pwm-leds = &pwm_leds;
-    }
+    };
     aliases {
         led-red = &led0;
         led-green = &led1;
@@ -285,6 +285,31 @@ As an example, here are two definitions for the standard three LEDs connected to
             pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
         };
     };
+};
+
+&pinctrl {
+    pwm0_default: pwm0_default {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 0, 2)>,     // Red LED on P0.02
+                    <NRF_PSEL(PWM_OUT1, 0, 29)>,    // Green LED on P0.29
+                    <NRF_PSEL(PWM_OUT2, 0, 31)>;    // Blue LED on P0.31
+        };
+    };
+    pwm0_sleep: pwm0_sleep {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 0, 2)>,     // Red LED on P0.02
+                    <NRF_PSEL(PWM_OUT1, 0, 29)>,    // Green LED on P0.29
+                    <NRF_PSEL(PWM_OUT2, 0, 31)>;    // Blue LED on P0.31
+            low-power-enable;
+        };
+    };
+};
+
+&pwm0 {
+    status = "okay";
+    pinctrl-0 = <&pwm0_default>;
+    pinctrl-1 = <&pwm0_sleep>;
+    pinctrl-names = "default", "sleep";
 };
 ```
 
