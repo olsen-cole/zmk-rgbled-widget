@@ -258,6 +258,7 @@ As an example, here are two definitions for the standard three LEDs connected to
     };
 };
 ```
+(If the LEDs are wired between GPIO and GND instead, use `GPIO_ACTIVE_HIGH` flag.)
 ### PWM brightness implementation
 ```dts
 / {
@@ -313,7 +314,7 @@ As an example, here are two definitions for the standard three LEDs connected to
 };
 ```
 
-(If the LEDs are wired between GPIO and GND instead, use `GPIO_ACTIVE_HIGH` flag.)
+(If the LEDs are wired between GPIO and GND instead, use `PWM_POLARITY_NORMAL` flag.)
 
 Finally, turn on the widget in the configuration:
 
